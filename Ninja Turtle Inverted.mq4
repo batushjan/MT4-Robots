@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                                  NinjaTurtle Inverted.mq4 |
+//|                                                  NinjaTurtle.mq4 |
 //|                        Copyright 2015, MetaQuotes Software Corp. |
 //|                                             https://www.mql5.com |
 //+------------------------------------------------------------------+
@@ -350,8 +350,11 @@ void UpdatePendingOrders()
    {
     TicketNumber = BuyOrder.TicketNumber;
     
+    Alert("BuyOrder._OrderType ", BuyOrder._OrderType);
+    
     if (BuyOrder._OrderType == OP_BUYLIMIT)
     {
+       Alert("TicketNumber ", TicketNumber);
        if (TicketNumber != 0)
        {
           for(int i = 0; i < OrdersTotal(); i++)
@@ -365,6 +368,8 @@ void UpdatePendingOrders()
                 }
              }
           }
+          
+          Alert("buyFound", buyFound);
  
           if (buyFound == false)  // No Order Found
           {
@@ -373,11 +378,14 @@ void UpdatePendingOrders()
           }
           else // Order found
           {
+          
              if (OrderType() == OP_BUY)                // Order has been activated
              {
+                Alert("Buy Activated");
                 BuyOrder._OrderType = OP_BUY;          //Change the OrderType
                 if (OrderTradeMode == NJNTRADE_BUYANDSELL)
                 {
+                 Alert("Delete SellStop");
                  bool result = DeleteOrder(SellOrder);  // Delete Sell Limit
                  if (result)
                    {
@@ -1560,7 +1568,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
          
          // Ticket Processed
          details.TicketNumber          = Ticket;      // Order number
-         details._OrderType            =OP_BUYSTOP;   // Order type
+         details._OrderType            =OP_BUYLIMIT;   // Order type
          details.MagicNumber           =MagicNumber;  // Magic number 
          details._Lots                 =Lots;         // Amount of lots
          details.OpenPrice             =Ask;          // Order open price
