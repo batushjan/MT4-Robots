@@ -350,11 +350,11 @@ void UpdatePendingOrders()
    {
     TicketNumber = BuyOrder.TicketNumber;
     
-    Alert("BuyOrder._OrderType ", BuyOrder._OrderType);
+    //Alert("BuyOrder._OrderType ", BuyOrder._OrderType);
     
     if (BuyOrder._OrderType == OP_BUYLIMIT)
     {
-       Alert("TicketNumber ", TicketNumber);
+       //Alert("TicketNumber ", TicketNumber);
        if (TicketNumber != 0)
        {
           for(int i = 0; i < OrdersTotal(); i++)
@@ -369,7 +369,7 @@ void UpdatePendingOrders()
              }
           }
           
-          Alert("buyFound", buyFound);
+          //Alert("buyFound", buyFound);
  
           if (buyFound == false)  // No Order Found
           {
@@ -381,11 +381,11 @@ void UpdatePendingOrders()
           
              if (OrderType() == OP_BUY)                // Order has been activated
              {
-                Alert("Buy Activated");
+                //Alert("Buy Activated");
                 BuyOrder._OrderType = OP_BUY;          //Change the OrderType
                 if (OrderTradeMode == NJNTRADE_BUYANDSELL)
                 {
-                 Alert("Delete SellStop");
+                 //Alert("Delete SellStop");
                  bool result = DeleteOrder(SellOrder);  // Delete Sell Limit
                  if (result)
                    {
@@ -479,7 +479,7 @@ void UpdatePendingOrders()
          {
           if (SellOrder.OpenPrice != Current_PriceChannel_Top)
           {
-           Alert("Pending Orders Sell Limit stop price adjustment");
+           //Alert("Pending Orders Sell Limit stop price adjustment");
            ModifySellLimitOrder(SellOrder.TicketNumber, Current_PriceChannel_Top, StopLoss, TakeProfit);
           }
          }
@@ -516,7 +516,7 @@ void UpdatePendingOrders()
          {
           if (BuyOrder.OpenPrice != Current_PriceChannel_Bottom)
           {
-           Alert("Pending Orders Buy Limit stop price adjustment");
+           //Alert("Pending Orders Buy Limit stop price adjustment");
            ModifyBuyLimitOrder(BuyOrder.TicketNumber, Current_PriceChannel_Bottom, StopLoss, TakeProfit);
           }
          }
@@ -809,7 +809,7 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
       
       //Alert("Applied Stop Loss : ", SL);
       
-      Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
+      //Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
       bool response = OrderModify(Ticket, Price, SL, _TakeProfit, 0);
       
       if (response == true)
@@ -1687,7 +1687,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
          
          // Ticket Processed
          details.TicketNumber          = Ticket;       // Order number
-         details._OrderType            = OP_SELLSTOP;  // Order type
+         details._OrderType            = OP_SELLLIMIT;  // Order type
          details.MagicNumber           = MagicNumber;  // Magic number 
          details._Lots                 = Lots;         // Amount of lots
          details.OpenPrice             = Bid;          // Order open price
