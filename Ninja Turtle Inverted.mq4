@@ -69,7 +69,7 @@ struct OrderDetails
    */
 };
 
-const OrderDetails defaultOrderDetails = {0, -1, 0, 0, 0, 0, 0, false, false};
+const OrderDetails defaultOrderDetails = {-1, -1, 0, 0, 0, 0, 0, false, false};
 
 
 
@@ -341,7 +341,7 @@ void UpdatePendingOrders()
 {
    bool  buyFound    = false,
          sellFound   = false;
-   int TicketNumber  = 0;
+   int TicketNumber  = -1;
    
    // --------------------------------------------------------------
    // Buy Pending Order Update
@@ -355,7 +355,7 @@ void UpdatePendingOrders()
     if (BuyOrder._OrderType == OP_BUYLIMIT)
     {
        //Alert("TicketNumber ", TicketNumber);
-       if (TicketNumber != 0)
+       if (TicketNumber != -1)
        {
           for(int i = 0; i < OrdersTotal(); i++)
           {
@@ -405,11 +405,14 @@ void UpdatePendingOrders()
    sellFound = false;
    if (OrderTradeMode == NJNTRADE_BUYANDSELL || OrderTradeMode == NJNTRADE_ONLYSELL)
    {
+    //Alert("SellOrder.TicketNumber ", SellOrder.TicketNumber);
+    
     TicketNumber = SellOrder.TicketNumber;
     
     if (SellOrder._OrderType == OP_SELLLIMIT)
     {
-       if (TicketNumber != 0)
+       //Alert("TicketNumber ", TicketNumber); 
+       if (TicketNumber != -1)
        {
           for(int i = 0; i < OrdersTotal(); i++)
           {
@@ -423,6 +426,7 @@ void UpdatePendingOrders()
              }
           }
            
+          //Alert("sellFound ", sellFound);
           if (sellFound == false)  // No Order Found
           {
              // Order is activated and closed already (take profit or stop loss)
@@ -432,9 +436,12 @@ void UpdatePendingOrders()
           {
              if (OrderType() == OP_SELL)                  // Order has been activated
              {
+              //Alert("SellActivated");
               SellOrder._OrderType = OP_SELL;           //Change the OrderType
               if (OrderTradeMode == NJNTRADE_BUYANDSELL)
               {
+               //Alert("DeleteBuyLimit");
+
                bool result = DeleteOrder(BuyOrder);      // Delete Buy Limit
                if (result)
                {
@@ -542,7 +549,7 @@ void UpdateActivatedOrders()
    
    if (BuyOrder._OrderType == OP_BUY)
    {
-      if (TicketNumber != 0)
+      if (TicketNumber != -1)
       {
          for(int i = 0; i < OrdersTotal(); i++)
          {
@@ -587,7 +594,7 @@ void UpdateActivatedOrders()
    
    if (SellOrder._OrderType == OP_SELL)
    {
-      if (TicketNumber != 0)
+      if (TicketNumber != -1)
       {
          for(int i = 0; i < OrdersTotal(); i++)
          {
@@ -1696,7 +1703,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
          details.HasComment            = false;        // If there is no comment
          details.TrailingStopApplied   = false;        // Has Stop Profit Applied
          
-         BuyOrder = details;
+         SellOrder = details;
     
          result = true;
          break;
