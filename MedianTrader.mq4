@@ -28,6 +28,8 @@ int Count = 0;
 
 input int               MA_Period   = 50;
 input ENUM_MA_METHOD    MA_Type     = MODE_SMA;
+input ENUM_APPLIED_PRICE MA_Applied_Price = PRICE_TYPICAL;
+
 input int     Concomitant       = 0;
 input int     Consecutive       = 0;
 input int     Decisive_Amount   = 0;
@@ -243,7 +245,7 @@ void ProcessChartData()
 
          
    // Get Mediaum average value         
-      MA_Value = iMA(NULL, 0, MA_Period, 0, MA_Type,   PRICE_TYPICAL, 0);
+      MA_Value = iMA(NULL, 0, MA_Period, 0, MA_Type, MA_Applied_Price , 0);
       
       if (Open[1] > Close[1] && MA_Value > Close[1] && MA_Value < Open[1])
       {
