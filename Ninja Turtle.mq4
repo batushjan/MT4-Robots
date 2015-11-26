@@ -30,7 +30,7 @@ input int   EndHour = 14;
 
       int   GMTUsed = 0,
             GMTDesired = 0;                 
-            
+
 input ENUM_TIMEFILTER_TRADEMODE NumberTradeMode = TFILTER_MULTIPLE;
 input ENUM_TIMEFILTER_ACTIVATIONMODE TradeActivation = TFILTER_AM_KEEPUPDATE; 
       bool  IsFirstTradeDone = false;
@@ -38,6 +38,9 @@ input ENUM_TIMEFILTER_ACTIVATIONMODE TradeActivation = TFILTER_AM_KEEPUPDATE;
 
 double   Current_PriceChannel_Top,
          Current_PriceChannel_Bottom;
+         
+double   stopLevel,
+         stopLevelPoint;         
 
 struct OrderDetails
 {
@@ -116,7 +119,7 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-  
+      UpdateCurrentStopLevel();
       UpdatePendingOrders();
       UpdateActivatedOrders();
 //---
@@ -166,12 +169,7 @@ void OnTick()
       
       if (SellOrder._OrderType == -1 && BuyOrder._OrderType == -1)
       {
-         
-         double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
-         double stopLevelPoint = stopLevel * Point;
-
-         Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         UpdateCurrentPriceChannel();
 
          double BuyStop_SL = NormalizeDouble(Current_PriceChannel_Top - StopLoss * pips2dbl, Digits);
          double BuyStop_TP = NormalizeDouble(Current_PriceChannel_Top + TakeProfit * pips2dbl, Digits);
@@ -239,51 +237,78 @@ void OnTick()
          }
          else
          {
-            Alert("Stop Level: "+DoubleToStr(stopLevelPoint));
-            if (!OpenPriceCondition)
-            {
-               if (!(Current_PriceChannel_Top - Ask >= stopLevelPoint))
-                  Alert("BuyStop Price: Price - Ask = " + DoubleToStr(NormalizeDouble(Current_PriceChannel_Top - Ask, Digits)));
-
-               if (!(Bid - Current_PriceChannel_Bottom >= stopLevelPoint))
-                  Alert("SellStop Price: Bid - Price = " + DoubleToStr(Bid - Current_PriceChannel_Bottom));
-            }
-            
-            if (!StopLossCondition)
-            {
-               if (!(Current_PriceChannel_Top - BuyStop_SL >= stopLevelPoint))
-               {
-                  Alert("BuyStop StopLoss = " + DoubleToStr(BuyStop_SL));
-                  Alert("BuyStop StopLoss: Price - StopLoss =" + DoubleToStr(Current_PriceChannel_Top - BuyStop_SL));
-               }
-               
-               if (!(SellStop_SL - Current_PriceChannel_Bottom >= stopLevelPoint))
-               {
-                  Alert("SellStop StopLoss = " + DoubleToStr(SellStop_SL));
-                  Alert("SellStop StopLoss: StopLoss - Price =" + DoubleToStr(NormalizeDouble(SellStop_SL - Current_PriceChannel_Bottom, Digits)));
-               }
-            }
-            
-            if (!TakeProfitCondition)
-            {
-               if (! (BuyStop_TP - Current_PriceChannel_Top >= stopLevelPoint))
-               {
-                  Alert("BuyStop TakeProfit = " + DoubleToStr(BuyStop_TP));
-                  Alert("BuyStop TakeProfit: TakeProfit - Price =" + DoubleToStr(BuyStop_TP - Current_PriceChannel_Top));
-               }
-               
-               if (!(Current_PriceChannel_Bottom - SellStop_TP >= stopLevelPoint))
-               {
-                  Alert("SellStop TakeProfit = " + DoubleToStr(SellStop_TP));
-                  Alert("SellStop TakeProfit: Price - TakeProfit =" + DoubleToStr(Current_PriceChannel_Bottom - SellStop_TP));
-               }
-            }
+//            Alert("Stop Level: "+DoubleToStr(stopLevelPoint));
+//            if (!OpenPriceCondition)
+//            {
+//               if (!(Current_PriceChannel_Top - Ask >= stopLevelPoint))
+//                  Alert("BuyStop Price: Price - Ask = " + DoubleToStr(NormalizeDouble(Current_PriceChannel_Top - Ask, Digits)));
+//
+//               if (!(Bid - Current_PriceChannel_Bottom >= stopLevelPoint))
+//                  Alert("SellStop Price: Bid - Price = " + DoubleToStr(Bid - Current_PriceChannel_Bottom));
+//            }
+//            
+//            if (!StopLossCondition)
+//            {
+//               if (!(Current_PriceChannel_Top - BuyStop_SL >= stopLevelPoint))
+//               {
+//                  Alert("BuyStop StopLoss = " + DoubleToStr(BuyStop_SL));
+//                  Alert("BuyStop StopLoss: Price - StopLoss =" + DoubleToStr(Current_PriceChannel_Top - BuyStop_SL));
+//               }
+//               
+//               if (!(SellStop_SL - Current_PriceChannel_Bottom >= stopLevelPoint))
+//               {
+//                  Alert("SellStop StopLoss = " + DoubleToStr(SellStop_SL));
+//                  Alert("SellStop StopLoss: StopLoss - Price =" + DoubleToStr(NormalizeDouble(SellStop_SL - Current_PriceChannel_Bottom, Digits)));
+//               }
+//            }
+//            
+//            if (!TakeProfitCondition)
+//            {
+//               if (! (BuyStop_TP - Current_PriceChannel_Top >= stopLevelPoint))
+//               {
+//                  Alert("BuyStop TakeProfit = " + DoubleToStr(BuyStop_TP));
+//                  Alert("BuyStop TakeProfit: TakeProfit - Price =" + DoubleToStr(BuyStop_TP - Current_PriceChannel_Top));
+//               }
+//               
+//               if (!(Current_PriceChannel_Bottom - SellStop_TP >= stopLevelPoint))
+//               {
+//                  Alert("SellStop TakeProfit = " + DoubleToStr(SellStop_TP));
+//                  Alert("SellStop TakeProfit: Price - TakeProfit =" + DoubleToStr(Current_PriceChannel_Bottom - SellStop_TP));
+//               }
+//            }
          }
-        
-        
       }
   }
 //+------------------------------------------------------------------+
+
+void UpdateCurrentStopLevel(){
+ stopLevel = MarketInfo(_Symbol,MODE_STOPLEVEL);
+ stopLevelPoint = stopLevel * Point;
+}
+
+
+void UpdateCurrentPriceChannel(){
+ 
+ if (IsNewBar())
+ {
+  Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
+  Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+ }
+}
+
+bool IsNewBar()
+{
+   static datetime LastTime;
+   
+   if (LastTime != Time[1])
+   {
+      LastTime = Time[1];
+      return true;
+   }
+   
+   return false;
+}
+
 
 bool IsAppropriateTimeFrame()
 {
@@ -293,12 +318,15 @@ bool IsAppropriateTimeFrame()
    
    // Get Server Time Value;
    int CurrentDate = TimeCurrent();
+   
    // Set Time to GMT +0;
    CurrentDate = CurrentDate - GMTUsed * 3600; 
    // Set Time to Time Zone needed
    CurrentDate = CurrentDate + GMTDesired * 3600;
    
-   return (StartHour <= TimeHour(CurrentDate) && TimeHour(CurrentDate) < EndHour);
+   int cTimeHour = TimeHour(CurrentDate);
+   
+   return (StartHour <= cTimeHour &&  cTimeHour < EndHour);
    
 }
 
@@ -347,7 +375,7 @@ void UpdatePendingOrders()
        {
           for(int i = 0; i < OrdersTotal(); i++)
           {
-             if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
+             if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
              {
                 if (OrderTicket() == TicketNumber) // Same Ticket
                 {
@@ -396,7 +424,7 @@ void UpdatePendingOrders()
        {
           for(int i = 0; i < OrdersTotal(); i++)
           {
-             if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
+             if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
              {
                 if (OrderTicket() == TicketNumber) // Same Ticket
                 {
@@ -442,12 +470,8 @@ void UpdatePendingOrders()
                sellStopConditionTakeProfit ;
                
          canUpdateSell = sellStopConditionPrice = sellStopConditionStopLoss = sellStopConditionTakeProfit = false;
-   
-         double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
-         double stopLevelPoint = stopLevel * Point;
-         
-         Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+
+         UpdateCurrentPriceChannel();
       
          double SellStop_SL = NormalizeDouble(Current_PriceChannel_Bottom + StopLoss * pips2dbl, Digits);
          double SellStop_TP = NormalizeDouble(Current_PriceChannel_Bottom - TakeProfit * pips2dbl, Digits);
@@ -480,12 +504,8 @@ void UpdatePendingOrders()
                buyStopConditionTakeProfit  ;
                
          canUpdateBuy = buyStopConditionPrice = buyStopConditionStopLoss = buyStopConditionTakeProfit = false;
-   
-         double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
-         double stopLevelPoint = stopLevel * Point;
-         
-         Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+
+         UpdateCurrentPriceChannel();
       
          double BuyStop_SL = NormalizeDouble(Current_PriceChannel_Top - StopLoss * pips2dbl, Digits);
          double BuyStop_TP = NormalizeDouble(Current_PriceChannel_Top + TakeProfit * pips2dbl, Digits);
@@ -531,7 +551,7 @@ void UpdateActivatedOrders()
       {
          for(int i = 0; i < OrdersTotal(); i++)
          {
-            if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
+            if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
             {
                if (OrderTicket() == TicketNumber) // Same Ticket
                {
@@ -548,7 +568,7 @@ void UpdateActivatedOrders()
          else // Order found
            {
             if (Bid - OrderOpenPrice() > TrailingStop_Profit * Point)
-            //if(OrderProfit()/MarketInfo(Symbol(),MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
+            //if(OrderProfit()/MarketInfo(_Symbol,MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
               {
                if(OrderType() == OP_BUY)
                  {
@@ -576,7 +596,7 @@ void UpdateActivatedOrders()
       {
          for(int i = 0; i < OrdersTotal(); i++)
          {
-            if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
+            if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
             {
                if (OrderTicket() == TicketNumber) // Same Ticket
                {
@@ -594,7 +614,7 @@ void UpdateActivatedOrders()
          else // Order found
          {
             if(OrderOpenPrice() - Ask > TrailingStop_Profit * Point)
-            //if(OrderProfit()/MarketInfo(Symbol(),MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
+            //if(OrderProfit()/MarketInfo(_Symbol,MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
               {
                if(OrderType() == OP_SELL)
                  {
@@ -613,13 +633,7 @@ void UpdateActivatedOrders()
 
 bool UpdateOrdersOnTimeFilterActivation()
 {
-   
-   double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
-   double stopLevelPoint = stopLevel * Point;
-   
-
-   Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-   Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+   UpdateCurrentPriceChannel();
 
    double BuyStop_SL = NormalizeDouble(Current_PriceChannel_Top - StopLoss * pips2dbl, Digits);
    double BuyStop_TP = NormalizeDouble(Current_PriceChannel_Top + TakeProfit * pips2dbl, Digits);
@@ -708,8 +722,6 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
    bool        result = false,
                useMargin = false;
    
-   double      Margin = 0;
-
    double      SL = 0,
                TP = 0,
                StopLossMargin = 0,
@@ -726,13 +738,11 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
    {
       if (useMargin)
       {
-         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
-   
-         RefreshRates();
+         UpdateCurrentStopLevel();// Last known
       
-         if (Margin > 0)
+         if (stopLevel > 0)
          {
-            if (NormalizeDouble(Bid - Margin * pips2dbl, Digits) < NormalizeDouble(_StopLoss, Digits))
+            if (NormalizeDouble(Bid - stopLevel * pips2dbl, Digits) < NormalizeDouble(_StopLoss, Digits))
             {
                // The Original Price + 1 
                // is more than Market Magin Stop level 
@@ -757,7 +767,7 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
       
       //Alert("Applied Stop Loss : ", SL);
       
-      Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
+      //Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
       bool response = OrderModify(Ticket, Price, SL, _TakeProfit, 0);
       
       if (response == true)
@@ -815,32 +825,30 @@ bool ModifySellOrderStopLoss(int Ticket, double Price, double _StopLoss, double 
    bool        result = false,
                useMargin = false;
    
-   double      Margin = 0;
-
    double      SL = 0,
                TP = 0,
                StopLossMargin = 0,
                TakeProfitMargin = 0;
                
-      Alert(
-      "ModifySellOrderStopLoss \n",
-      "Ticket : ", Ticket, "\n",
-      "Price : ", Price, "\n",
-      "StopLoss : ", _StopLoss, "\n",
-      "Take Profit : ", _TakeProfit, "\n" );               
+      //Alert(
+      //"ModifySellOrderStopLoss \n",
+      //"Ticket : ", Ticket, "\n",
+      //"Price : ", Price, "\n",
+      //"StopLoss : ", _StopLoss, "\n",
+      //"Take Profit : ", _TakeProfit, "\n" );               
 
 
    while (true)
    {
       if (useMargin)
       {   
-         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
+         UpdateCurrentStopLevel(); // Last known
    
          RefreshRates();
       
-         if (Margin > 0)
+         if (stopLevel > 0)
          {
-            if (NormalizeDouble(Ask + Margin * pips2dbl, Digits) > NormalizeDouble(_StopLoss, Digits))
+            if (NormalizeDouble(Ask + stopLevel * pips2dbl, Digits) > NormalizeDouble(_StopLoss, Digits))
             {
                // The New StopLoss
                // is more than Market Magin Stop level 
@@ -919,27 +927,22 @@ bool OpenBuyStopOrder(double Price, double _StopLoss, double _TakeProfit)
 {
    int         Ticket = 0,
                Slippage = 3,
-               stopLevel = -1,
                MagicNumber;
 
    double      SL = 0,
                TP = 0;
-
-   string      Symb;
    
    bool        result = false,
                checkStopLevels = false;
 
    while (true)
    {
-      Symb = Symbol();
       MagicNumber = TimeCurrent();
-      
-      RefreshRates();
       
       if (checkStopLevels)
       {
-         stopLevel = MarketInfo(Symb,MODE_STOPLEVEL);   // Minimal permissible StopLoss/TakeProfit value in points.
+         UpdateCurrentStopLevel();
+         // Minimal permissible StopLoss/TakeProfit value in points.
 
          if (stopLevel > _StopLoss) {
             SL = NormalizeDouble(Price - stopLevel * pips2dbl, Digits);
@@ -965,7 +968,7 @@ bool OpenBuyStopOrder(double Price, double _StopLoss, double _TakeProfit)
       }
       
          Ticket=OrderSend(
-            Symb,             // int         Symbol
+            _Symbol,             // int         Symbol
             OP_BUYSTOP,           // int         CMD
             Lots,             // double      Volume
             Price,              // double      Price
@@ -980,30 +983,30 @@ bool OpenBuyStopOrder(double Price, double _StopLoss, double _TakeProfit)
    
          if (Ticket<0)                                      // Failed :( 
          {
-            Alert("Buy Error"); 
-            Alert(" StopLevel: ", stopLevel, " Ask: ", Ask, " Bid: ", Bid, " Digits: ", Digits);
-            
-            Alert(" Price - Ask: ", NormalizeDouble(Price - Ask, Digits),
-               " Price - StopLoss: ", NormalizeDouble(Price - SL, Digits),
-               " TakeProfit - Price: ", NormalizeDouble(TP - Price, Digits)
-               );
-               
-         Alert
-         (
-            
-            " Symb: ",             Symb,             // int         Symbol
-            " CMD: ",              OP_BUYSTOP,       // int         CMD
-            " Volume: ",           Lots,             // double      Volume
-            " Price: ",            Bid,              // double      Price
-            " Slippage: ",         Slippage,         // int         Slippage
-            " StopLoss: ",         SL,               // double      StopLoss
-            " TakeProfit: ",       TP,               // double      TakeProfit
-            " Comment: ",          "",               // string      Comment           = NULL
-            " MagicNumber: ",      MagicNumber,      // int         MagicNumber       = 0
-            " ExpirationTime: ",   0,                // datetime    ExpirationTime    = 0
-            " Arrow_Color: ",      Green,             // color       Arrow_Color       = CLR_NONE
-            " Point: ",            0.0 + Point
-         );             
+//            Alert("Buy Error"); 
+//            Alert(" StopLevel: ", stopLevel, " Ask: ", Ask, " Bid: ", Bid, " Digits: ", Digits);
+//            
+//            Alert(" Price - Ask: ", NormalizeDouble(Price - Ask, Digits),
+//               " Price - StopLoss: ", NormalizeDouble(Price - SL, Digits),
+//               " TakeProfit - Price: ", NormalizeDouble(TP - Price, Digits)
+//               );
+//               
+//         Alert
+//         (
+//            
+//            " Symb: ",             _Symbol,             // int         Symbol
+//            " CMD: ",              OP_BUYSTOP,       // int         CMD
+//            " Volume: ",           Lots,             // double      Volume
+//            " Price: ",            Bid,              // double      Price
+//            " Slippage: ",         Slippage,         // int         Slippage
+//            " StopLoss: ",         SL,               // double      StopLoss
+//            " TakeProfit: ",       TP,               // double      TakeProfit
+//            " Comment: ",          "",               // string      Comment           = NULL
+//            " MagicNumber: ",      MagicNumber,      // int         MagicNumber       = 0
+//            " ExpirationTime: ",   0,                // datetime    ExpirationTime    = 0
+//            " Arrow_Color: ",      Green,             // color       Arrow_Color       = CLR_NONE
+//            " Point: ",            0.0 + Point
+//         );             
             int errorValue = GetLastError();                                              // Check for errors:
             if(ProcessErrors(errorValue)==false)     // If the error is critical,
             {
@@ -1055,20 +1058,18 @@ bool OpenSellStopOrder(double Price, double _StopLoss, double _TakeProfit)
                StopLossMargin = 0,
                TakeProfitMargin = 0;
 
-   string      Symb;
-   
    while (true)
    {
-      Symb = Symbol();
       MagicNumber = TimeCurrent();
    
       RefreshRates();
       
       if (useMargin)
       {
-         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL);// Last known
+         UpdateCurrentStopLevel();
+         // Last known
 
-         if (Margin > _StopLoss) {
+         if (stopLevel > _StopLoss) {
             StopLossMargin = Margin;
          }
          else
@@ -1076,9 +1077,9 @@ bool OpenSellStopOrder(double Price, double _StopLoss, double _TakeProfit)
             StopLossMargin = _StopLoss;
          }
 
-         if (Margin > _TakeProfit)
+         if (stopLevel > _TakeProfit)
          {
-            TakeProfitMargin = Margin;
+            TakeProfitMargin = stopLevel;
          }
          else
          {
@@ -1097,7 +1098,7 @@ bool OpenSellStopOrder(double Price, double _StopLoss, double _TakeProfit)
    //      Alert
    //      (
    //         
-   //         " Symb: ",             Symb,             // int         Symbol
+   //         " Symb: ",             _Symbol,             // int         Symbol
    //         " CMD: ",              OP_SELL,           // int         CMD
    //         " Volume: ",           Lots,             // double      Volume
    //         " Price: ",            Bid,              // double      Price
@@ -1112,7 +1113,7 @@ bool OpenSellStopOrder(double Price, double _StopLoss, double _TakeProfit)
    //      );      
    
          Ticket=OrderSend(
-            Symb,             // int         Symbol
+            _Symbol,             // int         Symbol
             OP_SELLSTOP,      // int         CMD
             Lots,             // double      Volume
             Price,            // double      Price
@@ -1129,23 +1130,23 @@ bool OpenSellStopOrder(double Price, double _StopLoss, double _TakeProfit)
          {
             result = false;
                      
-            Alert("Sell error");                          // Check for errors:
-         Alert
-         (
-            
-            " Symb: ",             Symb,             // int         Symbol
-            " CMD: ",              OP_SELLSTOP,       // int         CMD
-            " Volume: ",           Lots,             // double      Volume
-            " Price: ",            Price,              // double      Price
-            " Slippage: ",         Slippage,         // int         Slippage
-            " StopLoss: ",         SL,               // double      StopLoss
-            " TakeProfit: ",       TP,               // double      TakeProfit
-            " Comment: ",          "",               // string      Comment           = NULL
-            " MagicNumber: ",      MagicNumber,      // int         MagicNumber       = 0
-            " ExpirationTime: ",   0,                // datetime    ExpirationTime    = 0
-            " Arrow_Color: ",      Green,             // color       Arrow_Color       = CLR_NONE
-            " Point: ",            0.0 + Point
-         );  
+//            Alert("Sell error");                          // Check for errors:
+//         Alert
+//         (
+//            
+//            " Symb: ",             _Symbol,             // int         Symbol
+//            " CMD: ",              OP_SELLSTOP,       // int         CMD
+//            " Volume: ",           Lots,             // double      Volume
+//            " Price: ",            Price,              // double      Price
+//            " Slippage: ",         Slippage,         // int         Slippage
+//            " StopLoss: ",         SL,               // double      StopLoss
+//            " TakeProfit: ",       TP,               // double      TakeProfit
+//            " Comment: ",          "",               // string      Comment           = NULL
+//            " MagicNumber: ",      MagicNumber,      // int         MagicNumber       = 0
+//            " ExpirationTime: ",   0,                // datetime    ExpirationTime    = 0
+//            " Arrow_Color: ",      Green,             // color       Arrow_Color       = CLR_NONE
+//            " Point: ",            0.0 + Point
+//         );  
                      
             int Error = GetLastError();
             if(ProcessErrors(Error)==false)     // If the error is critical,
@@ -1226,23 +1227,17 @@ bool ModifyBuyStopOrder(int Ticket, double Price, double _StopLoss, double _Take
    bool        result = false,
                checkStopLevels = false;
    
-   double      stopLevel = 0;
-
    double      SL = 0,
                TP = 0,
                StopLossMargin = 0,
                TakeProfitMargin = 0;
-               
-   string      Symb;
-   
 
    while (true)
      {
-      Symb = Symbol();
 
       if (checkStopLevels)
         {
-         stopLevel = MarketInfo(Symb,MODE_STOPLEVEL);   // Minimal permissible StopLoss/TakeProfit value in points.
+         UpdateCurrentStopLevel(); // Minimal permissible StopLoss/TakeProfit value in points.
 
          if (stopLevel > _StopLoss)
            {
@@ -1329,8 +1324,6 @@ bool ModifySellStopOrder(int Ticket, double Price, double _StopLoss, double _Tak
 {
    bool        result = false,
                useMargin = false;
-   
-   double      Margin = 0;
 
    double      SL = 0,
                TP = 0,
@@ -1341,21 +1334,21 @@ bool ModifySellStopOrder(int Ticket, double Price, double _StopLoss, double _Tak
    {
       if (useMargin)
       {   
-         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
+         UpdateCurrentStopLevel();// Last known
    
          RefreshRates();
 
-         if (Margin > _StopLoss) {
-            StopLossMargin = Margin;
+         if (stopLevel > _StopLoss) {
+            StopLossMargin = stopLevel;
          }
          else
          {
             StopLossMargin = _StopLoss;
          }
 
-         if (Margin > _TakeProfit)
+         if (stopLevel > _TakeProfit)
          {
-            TakeProfitMargin = Margin;
+            TakeProfitMargin = stopLevel;
          }
          else
          {

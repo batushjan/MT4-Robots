@@ -113,7 +113,7 @@ bool HasOrder()
 {
  for(int i = 0; i < OrdersTotal(); i++)
  {
-  if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
+  if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
   {
    if (OrderMagicNumber() == MagicNumber) // Same Ticket
    {
@@ -161,21 +161,19 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
    double      SL = 0,
                TP = 0;
 
-   string      Symb;
-   
    bool        result = false,
                UseStopLevel = false;
 
    while (true)
    {
-      Symb         = Symbol();
+
       _MagicNumber = MagicNumber;
       
-      RefreshRates();
    
       if (UseStopLevel)
       {
-         StopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
+         //RefreshRates();
+         StopLevel = MarketInfo(_Symbol,MODE_STOPLEVEL);// Last known
 
          if (StopLevel > _StopLoss) {
             SL = NormalizeDouble(Bid - StopLevel * pips2dbl, Digits);
@@ -202,7 +200,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
    
    //      Alert
    //      (
-   //         " Symb: ",             Symb,             // int         Symbol
+   //         " Symb: ",             _Symbol,             // int         Symbol
    //         " CMD: ",              OP_BUY,           // int         CMD
    //         " Volume: ",           Lots,             // double      Volume
    //         " Price: ",            Ask,              // double      Price
@@ -217,7 +215,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
    //      );
       
          Ticket=OrderSend(
-            Symb,             // int         Symbol
+            _Symbol,             // int         Symbol
             OP_BUY,           // int         CMD
             Lots,             // double      Volume
             Ask,              // double      Price
@@ -267,19 +265,15 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
                TP = 0,
                StopLossMargin   = 0,
                TakeProfitMargin = 0;
-
-   string      Symb;
    
    while (true)
    {
-      Symb         = Symbol();
       _MagicNumber = MagicNumber;
    
-      RefreshRates();
-      
       if (UseStopLevel)
       {
-         StopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);// Last known
+         //RefreshRates();
+         StopLevel = MarketInfo(_Symbol,MODE_STOPLEVEL);// Last known
 
          if (StopLevel > _StopLoss) {
             StopLossMargin = StopLevel;
@@ -310,7 +304,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
    //      Alert
    //      (
    //         
-   //         " Symb: ",             Symb,             // int         Symbol
+   //         " Symb: ",             _Symbol,             // int         Symbol
    //         " CMD: ",              OP_SELL,           // int         CMD
    //         " Volume: ",           Lots,             // double      Volume
    //         " Price: ",            Bid,              // double      Price
@@ -325,7 +319,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
    //      );      
    
          Ticket=OrderSend(
-            Symb,             // int         Symbol
+            _Symbol,             // int         Symbol
             OP_SELL,          // int         CMD
             Lots,             // double      Volume
             Bid,              // double      Price
