@@ -366,7 +366,7 @@ bool UpdateBuyOrder(int GroupNumber, int OrderNumber)
    {
       for(int i = 0; i < OrdersTotal(); i++)
       {
-         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
+         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
          {
             if (OrderTicket() == TicketNumber) // Same Ticket
             {
@@ -439,7 +439,7 @@ bool UpdateSellOrder(int GroupNumber, int OrderNumber)
       
       for(int i = 0; i < OrdersTotal(); i++)
       {
-         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
+         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
          {
             if (OrderTicket() == ticketNumber) // Same Ticket
             {
@@ -593,18 +593,21 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Ord
    double      SL = 0,
                TP = 0;
 
+   string      Symb;
+   
    bool        result = false,
                useMargin = false;
 
    while (true)
    {
+      Symb = Symbol();
       MagicNumber = TimeCurrent();
       
-      //RefreshRates();
+      RefreshRates();
    
       if (useMargin)
       {
-         Margin = MarketInfo(_Symbol,MODE_STOPLEVEL );// Last known
+         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
 
          SL = MathMin(
             NormalizeDouble(Bid - Margin * pips2dbl, Digits),
@@ -625,7 +628,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Ord
    
    //      Alert
    //      (
-   //         " Symb: ",             _Symbol,             // int         Symbol
+   //         " Symb: ",             Symb,             // int         Symbol
    //         " CMD: ",              OP_BUY,           // int         CMD
    //         " Volume: ",           Lots,             // double      Volume
    //         " Price: ",            Ask,              // double      Price
@@ -640,7 +643,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Ord
    //      );
       
          Ticket=OrderSend(
-            _Symbol,             // int         Symbol
+            Symb,             // int         Symbol
             OP_BUY,           // int         CMD
             Lots,             // double      Volume
             Ask,              // double      Price
@@ -755,17 +758,19 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Or
                TP = 0,
                StopLossMargin = 0,
                TakeProfitMargin = 0;
+
+   string      Symb;
    
    while (true)
    {
-
+      Symb = Symbol();
       MagicNumber = TimeCurrent();
    
-      //RefreshRates();
+      RefreshRates();
       
       if (useMargin)
       {
-         Margin = MarketInfo(_Symbol,MODE_STOPLEVEL);// Last known
+         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL);// Last known
 
          SL = MathMax(
             NormalizeDouble(Bid + _StopLoss * pips2dbl, Digits),
@@ -787,7 +792,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Or
    //      Alert
    //      (
    //         
-   //         " Symb: ",             _Symbol,             // int         Symbol
+   //         " Symb: ",             Symb,             // int         Symbol
    //         " CMD: ",              OP_SELL,           // int         CMD
    //         " Volume: ",           Lots,             // double      Volume
    //         " Price: ",            Bid,              // double      Price
@@ -802,7 +807,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit, int GroupNumber, int Or
    //      );      
    
          Ticket=OrderSend(
-            _Symbol,             // int         Symbol
+            Symb,             // int         Symbol
             OP_SELL,          // int         CMD
             Lots,             // double      Volume
             Bid,              // double      Price
@@ -940,7 +945,7 @@ void UpdateBuyOrderStopLoss(int GroupNumber, int OrderNumber)
       
       for(int i = 0; i < OrdersTotal(); i++)
       {
-         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
+         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
          {
             if (OrderTicket() == ticketNumber) // Same Ticket
             {
@@ -991,7 +996,7 @@ void UpdateBuyOrderStopLoss(int GroupNumber, int OrderNumber)
          double TrailingStop_Percent = SecondChangeValuePercent[OrderNumber];
        
          if (Bid - OrderOpenPrice() > TrailingStop_Profit * Point)
-         //(OrderProfit()/MarketInfo(_Symbol,MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
+         //(OrderProfit()/MarketInfo(Symbol(),MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
            {
             double newSL = NormalizeDouble(OrderOpenPrice()+((Bid-OrderOpenPrice())*(TrailingStop_Percent/100.0)),Digits);
             if(OrderStopLoss() < newSL || OrderStopLoss() == 0.00000)
@@ -1015,7 +1020,7 @@ void UpdateSellOrderStopLoss(int GroupNumber, int OrderNumber)
       
       for(int i = 0; i < OrdersTotal(); i++)
       {
-         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==_Symbol))
+         if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
          {
             if (OrderTicket() == ticketNumber) // Same Ticket
             {
@@ -1064,7 +1069,7 @@ void UpdateSellOrderStopLoss(int GroupNumber, int OrderNumber)
          double TrailingStop_Profit= SecondChangeLevelPercent[OrderNumber];
          double TrailingStop_Percent = SecondChangeValuePercent[OrderNumber];
          if (OrderOpenPrice() - Ask > TrailingStop_Profit * Point)
-         //(OrderProfit()/MarketInfo(_Symbol,MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
+         //(OrderProfit()/MarketInfo(Symbol(),MODE_TICKVALUE)/OrderLots()*Point > TrailingStop_Profit *Point)
            {
             double newSL = NormalizeDouble(OrderOpenPrice()-((OrderOpenPrice()-Ask)*(TrailingStop_Percent/100.0)), Digits);
             if(OrderStopLoss() > newSL || OrderStopLoss() == 0.00000)
@@ -1095,20 +1100,20 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
                StopLossMargin = 0,
                TakeProfitMargin = 0;
                
-   //Alert(
-   //   "ModifyBuyOrderStopLoss \n",
-   //   "Ticket : ", Ticket, "\n",
-   //   "Price : ", Price, "\n",
-   //   "StopLoss : ", _StopLoss, "\n",
-   //   "Take Profit : ", _TakeProfit, "\n" );               
+   Alert(
+      "ModifyBuyOrderStopLoss \n",
+      "Ticket : ", Ticket, "\n",
+      "Price : ", Price, "\n",
+      "StopLoss : ", _StopLoss, "\n",
+      "Take Profit : ", _TakeProfit, "\n" );               
    
    while (true)
    {
       if (useMargin)
       {
-         Margin = MarketInfo(_Symbol,MODE_STOPLEVEL );// Last known
+         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
    
-         //RefreshRates();
+         RefreshRates();
       
          if (Margin > 0)
          {
@@ -1137,7 +1142,7 @@ bool ModifyBuyOrderStopLoss(int Ticket, double Price, double _StopLoss, double _
       
       //Alert("Applied Stop Loss : ", SL);
       
-      //Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
+      Alert("BUY MO: #",Ticket," P: ", Price, " SL: ", _StopLoss, " NSL ", SL, " TP ", _TakeProfit);
       bool response = OrderModify(Ticket, Price, SL, _TakeProfit, 0);
       
       if (response == true)
@@ -1201,19 +1206,19 @@ bool ModifySellOrderStopLoss(int Ticket, double Price, double _StopLoss, double 
                StopLossMargin = 0,
                TakeProfitMargin = 0;
                
-      //Alert(
-      //"ModifySellOrderStopLoss \n",
-      //"Ticket : ", Ticket, "\n",
-      //"Price : ", Price, "\n",
-      //"StopLoss : ", _StopLoss, "\n",
-      //"Take Profit : ", _TakeProfit, "\n" );               
+      Alert(
+      "ModifySellOrderStopLoss \n",
+      "Ticket : ", Ticket, "\n",
+      "Price : ", Price, "\n",
+      "StopLoss : ", _StopLoss, "\n",
+      "Take Profit : ", _TakeProfit, "\n" );               
 
 
    while (true)
    {
       if (useMargin)
       {   
-         Margin = MarketInfo(_Symbol,MODE_STOPLEVEL );// Last known
+         Margin = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
    
          RefreshRates();
       
