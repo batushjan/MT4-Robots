@@ -9,7 +9,8 @@
 #property strict
 
 input double Lots = 1.0;
-input double StopLevel = 40;
+input double TakeProfit = 40;
+input double StopLoss = 25;
 
 input bool Invert = false;
 input int  MagicNumber = 9009;
@@ -130,31 +131,31 @@ void MakeNewOrder()
  {
   if (!Invert)
   {
-   OpenBuyOrder(StopLevel);
+   OpenBuyOrder(StopLoss, TakeProfit);
   }
   else
   {
-   OpenSellOrder(StopLevel);
+   OpenSellOrder(StopLoss, TakeProfit);
   }
  }
  else if (Open[1] <= Close[1])
  {
   if (!Invert)
   {
-   OpenSellOrder(StopLevel);
+   OpenSellOrder(StopLoss, TakeProfit);
   }
   else 
   {
-   OpenBuyOrder(StopLevel);
+   OpenBuyOrder(StopLoss, TakeProfit);
   }
  }
 }
 
-bool OpenBuyOrder(double _StopLevel)
+bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
 {
    int         Ticket = 0,
                Slippage = 3,
-               TerminalStopLevel = 0,
+               StopLevel = 0,
                _MagicNumber;
 
    double      SL = 0,
@@ -174,29 +175,29 @@ bool OpenBuyOrder(double _StopLevel)
    
       if (UseStopLevel)
       {
-         TerminalStopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
+         StopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
 
-         if (TerminalStopLevel > _StopLevel) {
-            SL = NormalizeDouble(Bid - TerminalStopLevel * pips2dbl, Digits);
+         if (StopLevel > _StopLoss) {
+            SL = NormalizeDouble(Bid - StopLevel * pips2dbl, Digits);
          }
          else
          {
-            SL = NormalizeDouble(Bid - _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Bid - _StopLoss * pips2dbl, Digits);
          }
    
-         if (TerminalStopLevel > _StopLevel)
+         if (StopLevel > _TakeProfit)
          {
-            TP = NormalizeDouble(Bid + TerminalStopLevel * pips2dbl, Digits);
+            TP = NormalizeDouble(Bid + StopLevel * pips2dbl, Digits);
          }
          else
          {
-            TP = NormalizeDouble(Bid + _StopLevel * pips2dbl, Digits);
+            TP = NormalizeDouble(Bid + _TakeProfit * pips2dbl, Digits);
          }
       }
       else
       {
-            SL = NormalizeDouble(Bid - _StopLevel * pips2dbl, Digits);
-            TP = NormalizeDouble(Bid + _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Bid - _StopLoss * pips2dbl, Digits);
+            TP = NormalizeDouble(Bid + _TakeProfit * pips2dbl, Digits);
       }
    
    //      Alert
@@ -252,14 +253,14 @@ bool OpenBuyOrder(double _StopLevel)
    return (result);
 }
 
-bool OpenSellOrder(double _StopLevel)
+bool OpenSellOrder(double _StopLoss, double _TakeProfit)
 {
    bool        result        = false,
                UseStopLevel  = false;
    
    int         Ticket = 0,
                Slippage = 3,
-               TerminalStopLevel = 0,
+               StopLevel = 0,
                _MagicNumber;
 
    double      SL = 0,
@@ -278,29 +279,29 @@ bool OpenSellOrder(double _StopLevel)
       
       if (UseStopLevel)
       {
-         TerminalStopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);// Last known
+         StopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);// Last known
 
-         if (TerminalStopLevel > _StopLevel) {
-            StopLossMargin = TerminalStopLevel;
+         if (StopLevel > _StopLoss) {
+            StopLossMargin = StopLevel;
          }
          else
          {
-            StopLossMargin = _StopLevel;
+            StopLossMargin = _StopLoss;
          }
 
-         if (TerminalStopLevel > _StopLevel)
+         if (StopLevel > _TakeProfit)
          {
-            TakeProfitMargin = TerminalStopLevel;
+            TakeProfitMargin = StopLevel;
          }
          else
          {
-            TakeProfitMargin = _StopLevel;
+            TakeProfitMargin = _TakeProfit;
          }
       }
       else
       {
-         StopLossMargin   = _StopLevel;
-         TakeProfitMargin = _StopLevel;
+         StopLossMargin   = _StopLoss;
+         TakeProfitMargin = _TakeProfit;
       }
       
       SL = NormalizeDouble(Ask + StopLossMargin * pips2dbl, Digits);
