@@ -155,7 +155,7 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
 {
    int         Ticket = 0,
                Slippage = 3,
-               StopLevel = 0,
+               TerminalStopLevel = 0,
                _MagicNumber;
 
    double      SL = 0,
@@ -177,27 +177,27 @@ bool OpenBuyOrder(double _StopLoss, double _TakeProfit)
       {
          TerminalStopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
 
-         if (TerminalStopLevel > _StopLevel) {
+         if (TerminalStopLevel > _StopLoss) {
             SL = NormalizeDouble(Bid - TerminalStopLevel * pips2dbl, Digits);
          }
          else
          {
-            SL = NormalizeDouble(Ask - _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Ask - _StopLoss * pips2dbl, Digits);
          }
    
-         if (TerminalStopLevel > _StopLevel)
+         if (TerminalStopLevel > _TakeProfit)
          {
             TP = NormalizeDouble(Bid + TerminalStopLevel * pips2dbl, Digits);
          }
          else
          {
-            TP = NormalizeDouble(Ask + _StopLevel * pips2dbl, Digits);
+            TP = NormalizeDouble(Ask + _TakeProfit * pips2dbl, Digits);
          }
       }
       else
       {
-            SL = NormalizeDouble(Ask - _StopLevel * pips2dbl, Digits);
-            TP = NormalizeDouble(Ask + _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Ask - _StopLoss * pips2dbl, Digits);
+            TP = NormalizeDouble(Ask + _TakeProfit * pips2dbl, Digits);
       }
    
    //      Alert
@@ -260,7 +260,7 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
    
    int         Ticket = 0,
                Slippage = 3,
-               StopLevel = 0,
+               TerminalStopLevel = 0,
                _MagicNumber;
 
    double      SL = 0,
@@ -281,27 +281,27 @@ bool OpenSellOrder(double _StopLoss, double _TakeProfit)
       {
          TerminalStopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL );// Last known
 
-         if (TerminalStopLevel > _StopLevel) {
+         if (TerminalStopLevel > _StopLoss) {
             SL = NormalizeDouble(Ask + TerminalStopLevel * pips2dbl, Digits);
          }
          else
          {
-            SL = NormalizeDouble(Bid + _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Bid + _StopLoss * pips2dbl, Digits);
          }
    
-         if (TerminalStopLevel > _StopLevel)
+         if (TerminalStopLevel > _TakeProfit)
          {
             TP = NormalizeDouble(Ask - TerminalStopLevel * pips2dbl, Digits);
          }
          else
          {
-            TP = NormalizeDouble(Bid - _StopLevel * pips2dbl, Digits);
+            TP = NormalizeDouble(Bid - _TakeProfit * pips2dbl, Digits);
          }
       }
       else
       {
-            SL = NormalizeDouble(Bid + _StopLevel * pips2dbl, Digits);
-            TP = NormalizeDouble(Bid - _StopLevel * pips2dbl, Digits);
+            SL = NormalizeDouble(Bid + _StopLoss * pips2dbl, Digits);
+            TP = NormalizeDouble(Bid - _TakeProfit * pips2dbl, Digits);
       }
       
    //      Alert
