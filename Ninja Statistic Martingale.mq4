@@ -137,9 +137,10 @@ void AdjustConsecutiveLoss()
     if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber)
     {
      if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss = 0; }
-     if(OrderType()==OP_BUY && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss =+1; }
-     if(OrderType()==OP_SELL && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss =+1; }
+     if(OrderType()==OP_BUY && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss += 1; }
+     if(OrderType()==OP_SELL && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss += 1; }
      if(OrderType()==OP_SELL && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss = 0; }
+     break;
     }
    }
  }
