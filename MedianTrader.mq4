@@ -245,7 +245,7 @@ void ProcessChartData()
 
          
    // Get Mediaum average value         
-      MA_Value = iMA(NULL, 0, MA_Period, 0, MA_Type, MA_Applied_Price , 0);
+      MA_Value = iMA(NULL, 0, MA_Period, 0, MA_Type, MA_Applied_Price , 1);
       
       if (Open[1] > Close[1] && MA_Value > Close[1] && MA_Value < Open[1])
       {
