@@ -136,9 +136,15 @@ void AdjustConsecutiveLoss()
    {
     if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber)
     {
-     if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss = 0; }
+     Alert("Sell consecutiveLoss: ", consecutiveLoss);
+     
+     if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice())
+     {
+      consecutiveLoss = 0;
+     }
+     
      if(OrderType()==OP_BUY && OrderClosePrice()<=OrderOpenPrice()) {
-       if (consecutiveLoss > MaxConsecutiveLoss)
+       if (consecutiveLoss >= MaxConsecutiveLoss)
        {
         consecutiveLoss = 0;
        }
@@ -149,7 +155,8 @@ void AdjustConsecutiveLoss()
      }
      
      if(OrderType()==OP_SELL && OrderClosePrice()>=OrderOpenPrice()) {
-       if (consecutiveLoss > MaxConsecutiveLoss)
+     Alert("Sell consecutiveLoss: ", consecutiveLoss);
+       if (consecutiveLoss >= MaxConsecutiveLoss)
        {
         consecutiveLoss = 0;
        }
