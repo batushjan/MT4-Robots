@@ -15,6 +15,10 @@
 
 input int Price_Channel_Period = 20;
 input ENUM_PRICE_CHANNEL_MODE Price_Channel_Mode = PCHANNEL_HIGH_LOW;
+input bool UseSecondPriceChannel = false;
+input int Second_Price_Channel_Period = 20;
+input ENUM_PRICE_CHANNEL_MODE Second_Price_Channel_Mode = PCHANNEL_HIGH_LOW;
+
 input ENUM_NINJA_TRADEMODE OrderTradeMode = NJNTRADE_BUYANDSELL;
 
 input double Lots = 1.0;
@@ -173,7 +177,14 @@ void OnTick()
          double stopLevelPoint = stopLevel * Point;
 
          Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         if (UseSecondPriceChannel)
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+         }
+         else
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         }
 
          double BuyLimit_SL = NormalizeDouble(Current_PriceChannel_Bottom - StopLoss * pips2dbl, Digits);
          double BuyLimit_TP = NormalizeDouble(Current_PriceChannel_Bottom + TakeProfit * pips2dbl, Digits);
@@ -471,7 +482,14 @@ void UpdatePendingOrders()
          double stopLevelPoint = stopLevel * Point;
          
          Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         if (UseSecondPriceChannel)
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+         }
+         else
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         }
       
          double SellLimit_SL = NormalizeDouble(Current_PriceChannel_Top + StopLoss * pips2dbl, Digits);
          double SellLimit_TP = NormalizeDouble(Current_PriceChannel_Top - TakeProfit * pips2dbl, Digits);
@@ -509,7 +527,14 @@ void UpdatePendingOrders()
          double stopLevelPoint = stopLevel * Point;
          
          Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         if (UseSecondPriceChannel)
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+         }
+         else
+         {
+          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+         }
       
          double BuyLimit_SL = NormalizeDouble(Current_PriceChannel_Bottom - StopLoss * pips2dbl, Digits);
          double BuyLimit_TP = NormalizeDouble(Current_PriceChannel_Bottom + TakeProfit* pips2dbl, Digits);
@@ -637,7 +662,14 @@ bool ParticularCase_BuyLimitCheck()
 {
 
  Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
- Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+ if (UseSecondPriceChannel)
+ {
+  Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+ }
+ else
+ {
+  Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+ }
 
  if ((Bid == Current_PriceChannel_Bottom)
   && (BuyOrder._OrderType == OP_BUYLIMIT))
@@ -655,7 +687,14 @@ bool ParticularCase_SellLimitCheck()
 {
 
  Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
- Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+ if (UseSecondPriceChannel)
+ {
+  Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+ }
+ else
+ {
+  Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+ }
 
  if ((Ask == Current_PriceChannel_Top)
   && (SellOrder._OrderType == OP_SELLLIMIT))
@@ -677,7 +716,14 @@ bool UpdateOrdersOnTimeFilterActivation()
    
 
    Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-   Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+   if (UseSecondPriceChannel)
+   {
+    Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+   }
+   else
+   {
+    Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+   }
 
    double BuyLimit_SL = NormalizeDouble(Current_PriceChannel_Bottom - StopLoss * pips2dbl, Digits);
    double BuyLimit_TP = NormalizeDouble(Current_PriceChannel_Bottom + TakeProfit * pips2dbl, Digits);
