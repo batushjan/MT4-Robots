@@ -20,6 +20,9 @@ input bool UseSecondPriceChannnel = false;
 input int Second_Price_Channel_Period = 20;
 input ENUM_PRICE_CHANNEL_MODE Second_Price_Channel_Mode = PCHANNEL_HIGH_LOW;
 
+input bool EnforceMinimalPriceChannelHeight = false;
+input double MinimalPriceChannelHeight = 10.00;
+
 input ENUM_NINJA_TRADEMODE OrderTradeMode = NJNTRADE_BUYANDSELL;
 
 input double Lots = 1.0;
@@ -191,6 +194,9 @@ void OnTick()
 
          double SellStop_SL = NormalizeDouble(Current_PriceChannel_Bottom + StopLoss * pips2dbl, Digits);
          double SellStop_TP = NormalizeDouble(Current_PriceChannel_Bottom - TakeProfit * pips2dbl, Digits);
+         
+         double PriceChannelHeight = MathAbs(Current_PriceChannel_Top - Current_PriceChannel_Bottom);
+         
 
          // 
          bool  OpenPriceCondition,
@@ -206,6 +212,11 @@ void OnTick()
           TakeProfitCondition = (BuyStop_TP - Current_PriceChannel_Top >= stopLevelPoint)
              && (Current_PriceChannel_Bottom - SellStop_TP >= stopLevelPoint);
 
+          if (EnforceMinimalPriceChannelHeight && MinimalPriceChannelHeight > PriceChannelHeight)
+          {
+           return;
+          }
+
           if (OpenPriceCondition && StopLossCondition && TakeProfitCondition)
           {
            if (UseTimeFilter)
@@ -218,6 +229,7 @@ void OnTick()
              }
              else
              {
+              
               bool openResult = false;
               openResult = Open_BuyStop(Current_PriceChannel_Top);
               
