@@ -243,7 +243,6 @@ void ProcessChartData()
    if (IsAppropriateTimeFrame() == false)
       return;
 
-         
    // Get Mediaum average value         
       MA_Value = iMA(NULL, 0, MA_Period, 0, MA_Type, MA_Applied_Price , 1);
       
@@ -474,19 +473,31 @@ bool CanOpenBuy()
    if (Concomitant == 0)
       return (false);
       
-   UpdateBuyData();
+    UpdateBuyData();
    
-   int amount = 0;
-   
+   int BuyAmount = 0;
    for(int i = 0; i < BuyGroupCount; i++)
    {
       if (BuyGroupState[i] == 2)
       {
-         amount++;
+         BuyAmount++;
       }
    }
    
-   if (Consecutive > amount) // Consecutive is more than the number of Groups with a decisive amount of Orders
+   UpdateSellData();
+
+   int SellAmount = 0;
+   for(int i = 0; i < SellGroupCount; i++)
+   {
+      if (SellGroupState[i] == 2)
+      {
+         SellAmount++;
+      }
+   }
+   
+   int GroupAmount = BuyAmount + SellAmount;
+      
+   if (Consecutive > GroupAmount) // Consecutive is more than the number of Groups with a decisive amount of Orders
    {
       //Alert("CanOpenBuy: Consecutive: ", Consecutive," BuyTotal: ", amount,"  Ask: ", Ask, " Bid: ", Bid, " Open: ", Open[0], " Close: ", Close[0]);
       return (true);
@@ -507,19 +518,31 @@ bool CanOpenSell()
    if (Concomitant == 0)
       return (false);
       
+   UpdateBuyData();
+   
+   int BuyAmount = 0;
+   for(int i = 0; i < BuyGroupCount; i++)
+   {
+      if (BuyGroupState[i] == 2)
+      {
+         BuyAmount++;
+      }
+   }
+   
    UpdateSellData();
-   
-   int amount = 0;
-   
+
+   int SellAmount = 0;
    for(int i = 0; i < SellGroupCount; i++)
    {
       if (SellGroupState[i] == 2)
       {
-         amount++;
+         SellAmount++;
       }
    }
    
-   if (Consecutive > amount)
+   int GroupAmount = BuyAmount + SellAmount;
+      
+   if (Consecutive > GroupAmount)
    {
       //Alert("CanOpenSell: Consecutive: ", Consecutive," SellTotal: ", SellTotal," Ask: ", Ask, " Bid: ", Bid, " Open: ", Open[0], " Close: ", Close[0]);
       return (true);
