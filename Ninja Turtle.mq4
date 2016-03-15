@@ -457,6 +457,44 @@ void UpdatePendingOrders()
    else
     sellFound = true;
    
+   Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
+   if (UseSecondPriceChannnel)
+   {
+    Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
+   }
+   else
+   {
+    Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
+   }
+   
+   double PriceChannelHeight = NormalizeDouble(MathAbs(Current_PriceChannel_Top - Current_PriceChannel_Bottom), Digits);
+   
+   if (EnforceMinimalPriceChannelHeight && (NormalizeDouble(MinimalPriceChannelHeight * pips2dbl, Digits) > PriceChannelHeight))
+   {
+    
+    if (sellFound)
+    {
+     if (SellOrder._OrderType == OP_SELLSTOP)
+     {
+      DeleteOrder(SellOrder);
+      SellOrder = defaultOrderDetails;
+      sellFound = false;
+     }
+    }
+    
+    if (buyFound)
+    {
+     if (BuyOrder._OrderType == OP_BUYSTOP)
+     {
+      DeleteOrder(BuyOrder);
+      BuyOrder = defaultOrderDetails;
+      buyFound = false;
+     }
+    }
+   }
+
+   
+   
    if (sellFound && (SellOrder._OrderType == OP_SELLSTOP))
    {
       if ((UseTimeFilter && IsAppropriateTimeFrame()) || (!UseTimeFilter))
@@ -471,32 +509,24 @@ void UpdatePendingOrders()
          double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
          double stopLevelPoint = stopLevel * Point;
          
-         Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         if (UseSecondPriceChannnel)
-         {
-          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
-         }
-         else
-         {
-          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
-         }
       
          double SellStop_SL = NormalizeDouble(Current_PriceChannel_Bottom + StopLoss * pips2dbl, Digits);
          double SellStop_TP = NormalizeDouble(Current_PriceChannel_Bottom - TakeProfit * pips2dbl, Digits);
+
 
          // 
          sellStopConditionPrice = (Bid - Current_PriceChannel_Bottom)>= stopLevelPoint;
          sellStopConditionStopLoss = (SellStop_SL - Current_PriceChannel_Bottom >= stopLevelPoint);
          sellStopConditionTakeProfit = (Current_PriceChannel_Bottom - SellStop_TP >= stopLevelPoint);
 
-          if (sellStopConditionPrice && sellStopConditionStopLoss && sellStopConditionTakeProfit)
+         if (sellStopConditionPrice && sellStopConditionStopLoss && sellStopConditionTakeProfit)
+         {
+          if (SellOrder.OpenPrice != Current_PriceChannel_Bottom)
           {
-           if (SellOrder.OpenPrice != Current_PriceChannel_Bottom)
-           {
-            Alert("Pending Orders sell stop price adjustment");
-            ModifySellStopOrder(SellOrder.TicketNumber, Current_PriceChannel_Bottom, StopLoss, TakeProfit);
-           }
+           Alert("Pending Orders sell stop price adjustment");
+           ModifySellStopOrder(SellOrder.TicketNumber, Current_PriceChannel_Bottom, StopLoss, TakeProfit);
           }
+         }
          
       }
    }
@@ -515,16 +545,6 @@ void UpdatePendingOrders()
    
          double stopLevel = MarketInfo(Symbol(),MODE_STOPLEVEL);
          double stopLevelPoint = stopLevel * Point;
-         
-         Current_PriceChannel_Top      = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 0, 0);
-         if (UseSecondPriceChannnel)
-         {
-          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Second_Price_Channel_Period, Second_Price_Channel_Mode, 1, 0);
-         }
-         else
-         {
-          Current_PriceChannel_Bottom   = iCustom(NULL, 0, "PriceChannel", Price_Channel_Period, Price_Channel_Mode, 1, 0);
-         }
          
          double BuyStop_SL = NormalizeDouble(Current_PriceChannel_Top - StopLoss * pips2dbl, Digits);
          double BuyStop_TP = NormalizeDouble(Current_PriceChannel_Top + TakeProfit * pips2dbl, Digits);
