@@ -195,7 +195,7 @@ void OnTick()
          double SellStop_SL = NormalizeDouble(Current_PriceChannel_Bottom + StopLoss * pips2dbl, Digits);
          double SellStop_TP = NormalizeDouble(Current_PriceChannel_Bottom - TakeProfit * pips2dbl, Digits);
          
-         double PriceChannelHeight = MathAbs(Current_PriceChannel_Top - Current_PriceChannel_Bottom);
+         double PriceChannelHeight = NormalizeDouble(MathAbs(Current_PriceChannel_Top - Current_PriceChannel_Bottom), Digits);
          
 
          // 
@@ -212,7 +212,7 @@ void OnTick()
           TakeProfitCondition = (BuyStop_TP - Current_PriceChannel_Top >= stopLevelPoint)
              && (Current_PriceChannel_Bottom - SellStop_TP >= stopLevelPoint);
 
-          if (EnforceMinimalPriceChannelHeight && MinimalPriceChannelHeight > PriceChannelHeight)
+          if (EnforceMinimalPriceChannelHeight && (NormalizeDouble(MinimalPriceChannelHeight * pips2dbl, Digits) > PriceChannelHeight))
           {
            return;
           }
