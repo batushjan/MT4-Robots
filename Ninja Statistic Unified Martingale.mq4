@@ -13,9 +13,7 @@ input double StopLevel = 40;
 
 input bool Invert = false;
 input int  MagicNumber = 9009;
-
-
-      
+ 
 struct OrderDetails
 {
    int      TicketNumber;
@@ -55,12 +53,22 @@ int     pips2points;    // slippage  3 pips    3=points    30=points
 double  pips2dbl;       // Stoploss 15 pips    0.015      0.0150
 int     Digits_pips;    // DoubleToStr(dbl/pips2dbl, Digits.pips)
 
+bool isFirstInit = false;
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
 int OnInit()
 {
+ if (MagicNumber == 0)
+ {
+  int root = TimeCurrent();
+  MathSrand(root);
+  MagicNumber = MathRand();
+ }
+
+ isFirstInit = true;
+
 //---
  if (Digits % 2 == 1)
  {      
@@ -97,6 +105,11 @@ void OnTick()
   }
  }
  
+ if (isFirstInit)
+ {
+  isFirstInit = false;
+ }
+ 
 }
 //+------------------------------------------------------------------+
 bool IsNewBar()
@@ -129,9 +142,46 @@ bool HasOrder()
 
 void AdjustConsecutiveLoss()
 {
- // Adjust the numbers of Consecutive Losses
- for(int i=OrdersHistoryTotal()-1;i>=0;i--)
+
+ if (isFirstInit)
  {
+  bool foundFirst = true;
+  consecutiveLoss = 0;
+  for(int i=OrdersHistoryTotal()-1;i>=0;i--)
+  {
+   if (OrderSelect(i, SELECT_BY_POS,MODE_HISTORY) == true) // Select the order
+   {
+    if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber) // FOUND 
+    { 
+      if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice()) { 
+       if (foundFirst)
+       {
+        consecutiveLoss = 0;
+       }
+       break;
+      }
+      if(OrderType()==OP_BUY && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss += 1; }
+      
+      if(OrderType()==OP_SELL && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss += 1; }
+      if(OrderType()==OP_SELL && OrderClosePrice()<=OrderOpenPrice())
+      {
+       if (foundFirst)
+       {
+        consecutiveLoss = 0;
+       }
+       break;
+      }
+      if (foundFirst)
+       foundFirst = false;
+    }
+   }
+  }
+ }
+ else
+ {
+  // Adjust the numbers of Consecutive Losses
+  for(int i=OrdersHistoryTotal()-1;i>=0;i--)
+  {
    if (OrderSelect(i, SELECT_BY_POS,MODE_HISTORY) == true)
    {
     if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber)
@@ -141,10 +191,11 @@ void AdjustConsecutiveLoss()
      
      if(OrderType()==OP_SELL && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss += 1; }
      if(OrderType()==OP_SELL && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss = 0; }
-
+ 
      break;
     }
    }
+  }
  }
 }
 
