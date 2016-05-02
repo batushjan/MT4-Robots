@@ -47,7 +47,7 @@ struct OrderDetails
 const OrderDetails defaultOrderDetails = {0, -1, 0, 0, 0, 0, 0, false};
 OrderDetails currentOrder = defaultOrderDetails;
 int consecutiveLoss = 0;
-
+int currentMagicNumber = 0;
 // ---------------------
 int     pips2points;    // slippage  3 pips    3=points    30=points
 double  pips2dbl;       // Stoploss 15 pips    0.015      0.0150
@@ -64,8 +64,10 @@ int OnInit()
  {
   int root = TimeCurrent();
   MathSrand(root);
-  MagicNumber = MathRand();
+  currentMagicNumber = MathRand();
  }
+ else
+  currentMagicNumber = MagicNumber;
 
  isFirstInit = true;
 
@@ -131,7 +133,7 @@ bool HasOrder()
  {
   if ((OrderSelect(i, SELECT_BY_POS) == true) && (OrderSymbol()==Symbol()))
   {
-   if (OrderMagicNumber() == MagicNumber) // Same Ticket
+   if (OrderMagicNumber() == currentMagicNumber) // Same Ticket
    {
     return true;
    }
@@ -151,7 +153,7 @@ void AdjustConsecutiveLoss()
   {
    if (OrderSelect(i, SELECT_BY_POS,MODE_HISTORY) == true) // Select the order
    {
-    if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber) // FOUND 
+    if(OrderSymbol()==Symbol() && OrderMagicNumber()==currentMagicNumber) // FOUND 
     { 
       if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice()) { 
        if (foundFirst)
@@ -184,7 +186,7 @@ void AdjustConsecutiveLoss()
   {
    if (OrderSelect(i, SELECT_BY_POS,MODE_HISTORY) == true)
    {
-    if(OrderSymbol()==Symbol() && OrderMagicNumber()==MagicNumber)
+    if(OrderSymbol()==Symbol() && OrderMagicNumber()==currentMagicNumber)
     {
      if(OrderType()==OP_BUY && OrderClosePrice()>=OrderOpenPrice()) { consecutiveLoss = 0; }
      if(OrderType()==OP_BUY && OrderClosePrice()<=OrderOpenPrice()) { consecutiveLoss += 1; }
@@ -245,7 +247,7 @@ bool OpenBuyOrder(double _StopLevel, double _Lots)
    while (true)
    {
       Symb         = Symbol();
-      _MagicNumber = MagicNumber;
+      _MagicNumber = currentMagicNumber;
       
       RefreshRates();
    
@@ -301,7 +303,7 @@ bool OpenBuyOrder(double _StopLevel, double _Lots)
             SL,               // double      StopLoss
             TP,               // double      TakeProfit
             "",               // string      Comment           = NULL
-            MagicNumber,      // int         MagicNumber       = 0
+            _MagicNumber,      // int         MagicNumber       = 0
             0,                // datetime    ExpirationTime    = 0
             Green             // color       Arrow_Color       = CLR_NONE
          );
@@ -328,7 +330,7 @@ bool OpenBuyOrder(double _StopLevel, double _Lots)
          // Ticket Processed
          details.TicketNumber          = Ticket;      // Order number
          details._OrderType            = OP_BUY;       // Order type
-         details.MagicNumber           = MagicNumber;  // Magic number 
+         details.MagicNumber           = _MagicNumber;  // Magic number 
          details._Lots                 = _Lots;         // Amount of lots
          details.OpenPrice             = Ask;          // Order open price
          details.StopLoss              = SL;           // SL price
@@ -363,7 +365,7 @@ bool OpenSellOrder(double _StopLevel, double _Lots)
    while (true)
    {
       Symb         = Symbol();
-      _MagicNumber = MagicNumber;
+      _MagicNumber = currentMagicNumber;
    
       RefreshRates();
       
@@ -420,7 +422,7 @@ bool OpenSellOrder(double _StopLevel, double _Lots)
             SL,               // double      StopLoss
             TP,               // double      TakeProfit
             "",               // string      Comment           = NULL
-            MagicNumber,      // int         MagicNumber       = 0
+            _MagicNumber,      // int         MagicNumber       = 0
             0,                // datetime    ExpirationTime    = 0
             Red               // color       Arrow_Color       = CLR_NONE
          );
@@ -431,6 +433,8 @@ bool OpenSellOrder(double _StopLevel, double _Lots)
                      
             //Alert("Sell error");                          // Check for errors:
             int Error = GetLastError();
+            
+            
             if(ProcessErrors(Error)==false)     // If the error is critical,
             {
                break; // Non Overcomable Error
@@ -450,7 +454,7 @@ bool OpenSellOrder(double _StopLevel, double _Lots)
          // Ticket Processed
          details.TicketNumber          = Ticket;      // Order number
          details._OrderType            = OP_SELL;       // Order type
-         details.MagicNumber           = MagicNumber;  // Magic number 
+         details.MagicNumber           = _MagicNumber;  // Magic number 
          details._Lots                 = _Lots;         // Amount of lots
          details.OpenPrice             = Bid;          // Order open price
          details.StopLoss              = SL;           // SL price
@@ -468,6 +472,7 @@ bool OpenSellOrder(double _StopLevel, double _Lots)
 
 bool ProcessErrors(int Error)                    // Custom function
   {
+   Alert("OrderSend Error ", Error);
    // Error             // Error number   
    if(Error==0)
       return(false);                      // No error
